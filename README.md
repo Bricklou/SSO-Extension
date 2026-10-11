@@ -30,7 +30,7 @@ You must then reload the panel, then you can find the configuration under Admin 
 Turn on **Enable OpenID Connect** in the extension settings, then add servers under Admin > OpenID Connect. Each one has an issuer URL (discovery is read from `/.well-known/openid-configuration`), a client ID and secret, and is given the redirect URL shown in the list.
 
 - **Groups to roles:** list administrator and member groups, and the claim that holds the groups (`groups` by default; use dots for nested claims, such as `realm_access.roles`). Roles are applied at every sign-in. When any group is listed, a user in none of them is refused; with no member group, everyone else is a regular user. With no groups listed the role is never changed.
-- **Create accounts:** an unknown user gets a panel account when this is enabled. An email is required, and an email already used on the panel is refused rather than merged. Only OpenID Connect servers can do this.
+- **Create accounts:** an unknown user gets a panel account when this is enabled. An email is required and the server must report it as verified (`email_verified: true`), otherwise nobody could claim an address they do not own. An email already used on the panel is refused rather than merged. Only OpenID Connect servers can do this.
 
 ## Adding a provider
 

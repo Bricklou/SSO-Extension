@@ -495,6 +495,27 @@ test('account creation needs an email and never merges into an existing account'
     expect(User::query()->where('email', 'jane@corp.test')->sole()->id)->toBe($existing->id);
 });
 
+test('an account is never created for an email the provider has not verified', function (): void {
+    oidc(['create_users' => true]);
+
+    foreach ([['email_verified' => false], ['email_verified' => 'true'], ['email_verified' => null]] as $claims) {
+        fakeOidc($claims);
+        callback($this, provider: 'oidc-corp')->assertRedirect('/auth/login?sso_error=unverified');
+    }
+
+    $this->assertGuest();
+    expect(User::query()->where('email', 'jane@corp.test')->exists())->toBeFalse();
+    expect(Identity::query()->count())->toBe(0);
+});
+
+test('an unverified email does not reveal whether it is registered', function (): void {
+    oidc(['create_users' => true]);
+    user(['email' => 'jane@corp.test']);
+    fakeOidc(['email_verified' => false]);
+
+    callback($this, provider: 'oidc-corp')->assertRedirect('/auth/login?sso_error=unverified');
+});
+
 test('a created account gets a free username', function (): void {
     oidc(['create_users' => true]);
     user(['username' => 'jane']);
@@ -547,6 +568,19 @@ test('administrators manage openid connect servers and the secret is never retur
     $this->actingAs($admin)->postJson('/api/admin/extensions/sso/oidc-providers', $payload)->assertUnprocessable();
     $this->actingAs($admin)->postJson('/api/admin/extensions/sso/oidc-providers', [...$payload, 'slug' => 'Bad Slug'])->assertUnprocessable();
     $this->actingAs($admin)->postJson('/api/admin/extensions/sso/oidc-providers', [...$payload, 'slug' => 'two', 'issuer' => 'http://id.example.test'])->assertUnprocessable();
+});
+
+test('the identifier of an openid connect server cannot be changed', function (): void {
+    $admin = user(['root_admin' => true]);
+    $record = oidc();
+    Identity::query()->create(['user_id' => $admin->id, 'provider' => 'oidc-corp', 'provider_user_id' => 'subject-1']);
+
+    $this->actingAs($admin)->putJson('/api/admin/extensions/sso/oidc-providers/'.$record->id, [
+        'slug' => 'renamed', 'label' => 'Renamed', 'issuer' => 'https://id.example.test/realm', 'client_id' => 'oidc-client',
+    ])->assertOk()->assertJsonPath('data.provider_id', 'oidc-corp')->assertJsonPath('data.label', 'Renamed');
+
+    expect($record->refresh()->slug)->toBe('corp');
+    expect(Identity::query()->sole()->provider)->toBe('oidc-corp');
 });
 
 test('only administrators can manage openid connect servers', function (): void {

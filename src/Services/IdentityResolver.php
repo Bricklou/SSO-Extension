@@ -85,7 +85,8 @@ final class IdentityResolver
 
     /**
      * Create a panel account for an identity nobody is linked to. It needs an
-     * email, and an email already used on the panel is never merged into.
+     * email the provider vouches for, so nobody can claim an address they do not
+     * own, and an email already used on the panel is never merged into.
      *
      * @param ExternalIdentity
      * @return User
@@ -94,6 +95,10 @@ final class IdentityResolver
     {
         if ($identity->email === null) {
             throw new SsoException(SsoException::UNLINKED);
+        }
+
+        if (! $identity->emailVerified) {
+            throw new SsoException(SsoException::UNVERIFIED);
         }
 
         if (User::query()->where('email', $identity->email)->exists()) {
