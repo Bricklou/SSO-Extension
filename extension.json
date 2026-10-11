@@ -39,6 +39,22 @@
                 "when": {
                     "runtime": true
                 }
+            },
+            {
+                "id": "provider-new",
+                "area": "admin",
+                "path": "oidc-providers/new",
+                "when": {
+                    "runtime": true
+                }
+            },
+            {
+                "id": "provider-edit",
+                "area": "admin",
+                "path": "oidc-providers/edit/$record",
+                "when": {
+                    "runtime": true
+                }
             }
         ]
     }

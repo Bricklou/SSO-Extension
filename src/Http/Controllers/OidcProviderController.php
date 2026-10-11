@@ -7,6 +7,7 @@ namespace Sso\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -60,7 +61,7 @@ final class OidcProviderController
             ...$this->rules(),
         ]);
 
-        $attributes = $this->attributes($data);
+        $attributes = Arr::except($this->attributes($data), ['slug']);
         if (($data['client_secret'] ?? null) === null || $data['client_secret'] === '') {
             unset($attributes['client_secret']);
         }

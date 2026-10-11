@@ -29,6 +29,7 @@ export const SSO_ERRORS: Record<string, string> = {
         'No panel account is connected to that login. Sign in with your password, then connect it from Account → Connections.',
     taken: 'That account is already connected to another panel user.',
     forbidden: 'Your account is not allowed to sign in here.',
+    unverified: 'The sign-in provider has not verified your email address, so an account cannot be created.',
 };
 
 export const providersQueryOptions = () =>
